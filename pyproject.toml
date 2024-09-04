@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "crawler-deb-version"
+version = "0.1.0"
+description = ""
+authors = ["Taihsiang Ho (tai271828) <e@tai271828.me>"]
+readme = "README.md"
+packages = [{include = "crawler-deb-version"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+requests = "^2.32.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

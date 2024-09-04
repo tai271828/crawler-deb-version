@@ -1,0 +1,22 @@
+name: Checking Orphaned Debs
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  checking-orphaned-debs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checking new orphaned debs I am interested in
+        # I want the highlight by failing the job but I want it continue the
+        # next step to upload the artifacts i.e. the db
+        continue-on-error: true
+        run: |
+          pip install poetry
+          poetry install
+          # will create or update package_history.pkl in the same dir
+          poetry run ./crawler-deb-version.py
+
