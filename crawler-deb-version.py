@@ -13,9 +13,6 @@ email_from = os.getenv("SENDGRID_EMAIL_FROM")
 email_to = os.getenv("SENDGRID_EMAIL_TO")
 email_subject = os.getenv("SENDGRID_EMAIL_SUBJECT")
 
-#if not (api_key and email_from and email_to and email_subject):
-#    raise ValueError("Necessary environment variables are not set.")
-
 # SendGrid API endpoint
 url_sendgrid_api = "https://api.sendgrid.com/v3/mail/send"
 
@@ -24,6 +21,32 @@ headers = {
     "Authorization": f"Bearer {api_key}",
     "Content-Type": "application/json"
 }
+
+
+def check_if_in_github_action():
+    # Check if GITHUB_ENV and GITHUB_WORKSPACE environment variables are set
+    github_env = os.getenv('GITHUB_ENV')
+    github_workspace = os.getenv('GITHUB_WORKSPACE')
+
+    if github_env and github_workspace:
+        print("Both GITHUB_ENV and GITHUB_WORKSPACE are set.")
+        print(f"GITHUB_ENV: {github_env}")
+        print(f"GITHUB_WORKSPACE: {github_workspace}")
+
+        return True
+
+    elif not github_env and not github_workspace:
+        print("Neither GITHUB_ENV nor GITHUB_WORKSPACE are set.")
+    elif not github_env:
+        print("GITHUB_ENV is not set.")
+    elif not github_workspace:
+        print("GITHUB_WORKSPACE is not set.")
+
+    return False
+
+
+if not (api_key and email_from and email_to and email_subject) and not check_if_in_github_action():
+    raise ValueError("Necessary environment variables are not set.")
 
 
 def send_result_notification(email_content):
@@ -99,10 +122,12 @@ def main():
     # Step 3: Compare the versions
     if last_known_version != current_version:
         print(f"Version update detected: {last_known_version} -> {current_version}")
-        #send_result_notification(current_version)
         save_last_known_version(current_version)
     else:
         print(f"No version update detected. Current version is still {current_version}.")
+    
+    if not check_if_in_github_action():
+        send_result_notification(current_version)
 
 
 if __name__ == "__main__":
