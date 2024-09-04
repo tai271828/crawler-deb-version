@@ -29,20 +29,18 @@ def check_if_in_github_action():
     github_workspace = os.getenv('GITHUB_WORKSPACE')
 
     if github_env and github_workspace:
-        print("Both GITHUB_ENV and GITHUB_WORKSPACE are set.")
-        print(f"GITHUB_ENV: {github_env}")
-        print(f"GITHUB_WORKSPACE: {github_workspace}")
+        print("The crawler seems to run in Github Action.")
+        print("\tBoth GITHUB_ENV and GITHUB_WORKSPACE are set.")
+        print(f"\tGITHUB_ENV: {github_env}")
+        print(f"\tGITHUB_WORKSPACE: {github_workspace}")
 
         return True
 
-    elif not github_env and not github_workspace:
-        print("Neither GITHUB_ENV nor GITHUB_WORKSPACE are set.")
-    elif not github_env:
-        print("GITHUB_ENV is not set.")
-    elif not github_workspace:
-        print("GITHUB_WORKSPACE is not set.")
+    else:
+        print("The crawler seems not to run in Github Action.")
+        print("\tEither GITHUB_ENV or GITHUB_WORKSPACE is not set.")
 
-    return False
+        return False
 
 
 if not (api_key and email_from and email_to and email_subject) and not check_if_in_github_action():
@@ -120,14 +118,16 @@ def main():
     last_known_version = load_last_known_version()
 
     # Step 3: Compare the versions
+    email_content="EMAIL CONTENT IS NOT READY YET."
     if last_known_version != current_version:
-        print(f"Version update detected: {last_known_version} -> {current_version}")
+        email_content=f"Version update detected: {last_known_version} -> {current_version}"
         save_last_known_version(current_version)
     else:
-        print(f"No version update detected. Current version is still {current_version}.")
+        email_content=f"No version update detected. Current version is still {current_version}."
     
+    print(email_content)
     if not check_if_in_github_action():
-        send_result_notification(current_version)
+        send_result_notification(email_content)
 
 
 if __name__ == "__main__":
