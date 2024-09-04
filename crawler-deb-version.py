@@ -47,7 +47,9 @@ if not (api_key and email_from and email_to and email_subject) and not check_if_
     raise ValueError("Necessary environment variables are not set.")
 
 
-def send_result_notification(email_content):
+def send_result_notification(email_content, subject_prefix="CRAWLER"):
+    subject = f"[{subject_prefix}]{email_subject}"
+
     # Email payload
     payload = {
         "personalizations": [
@@ -56,7 +58,7 @@ def send_result_notification(email_content):
             }
         ],
         "from": {"email": f"{email_from}"},
-        "subject": f"{email_subject}",
+        "subject": subject,
         "content": [
             {"type": "text/plain", "value": f"{email_content}"}
         ]
@@ -73,24 +75,24 @@ def send_result_notification(email_content):
         print(response.text)
 
 
-def load_last_known_version():
+def load_last_known_version(deb_name):
     # Load the last known version from a file
     if os.path.exists(LAST_VERSION_FILE):
         with open(LAST_VERSION_FILE, 'r') as f:
-            return json.load(f).get('last_version')
+            return json.load(f).get(deb_name)
     return None
 
 
-def save_last_known_version(version):
+def save_last_known_version(deb_name, version):
     # Save the last known version to a file
     with open(LAST_VERSION_FILE, 'w') as f:
-        json.dump({'last_version': version}, f)
+        json.dump({deb_name: version}, f)
 
 
-def get_debian_keyring_version():
+def get_deb_version(deb_name):
     # Run the rmadison command and capture the output
     try:
-        output = subprocess.check_output(['rmadison', '-u', 'debian', 'debian-keyring'], text=True)
+        output = subprocess.check_output(['rmadison', '-u', 'debian', deb_name], text=True)
     except subprocess.CalledProcessError as e:
         print(f"Error executing rmadison: {e}")
         return None
@@ -108,26 +110,29 @@ def get_debian_keyring_version():
 
 
 def main():
+    deb_name="debian-keyring"
     # Step 1: Get the current version
-    current_version = get_debian_keyring_version()
+    current_version = get_deb_version(deb_name)
     if current_version is None:
         print("Failed to retrieve the current version of debian-keyring.")
         return
 
     # Step 2: Load the last known version
-    last_known_version = load_last_known_version()
+    last_known_version = load_last_known_version(deb_name)
 
     # Step 3: Compare the versions
     email_content="EMAIL CONTENT IS NOT READY YET."
     if last_known_version != current_version:
-        email_content=f"Version update detected: {last_known_version} -> {current_version}"
-        save_last_known_version(current_version)
+        email_content=f"{deb_name}: Version update detected: {last_known_version} -> {current_version}"
+        save_last_known_version(deb_name, current_version)
+
+        if not check_if_in_github_action():
+            send_result_notification(email_content, subject_prefix=deb_name)
+
     else:
-        email_content=f"No version update detected. Current version is still {current_version}."
+        email_content=f"{deb_name}: No version update detected. Current version is still {current_version}."
     
     print(email_content)
-    if not check_if_in_github_action():
-        send_result_notification(email_content)
 
 
 if __name__ == "__main__":
