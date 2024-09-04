@@ -11,12 +11,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Checking new versions of the debs I am interested in
-        # I want the highlight by failing the job but I want it continue the
-        # next step to upload the artifacts i.e. the db
-        continue-on-error: true
         run: |
           apt update
-          apt devscripts
+          apt install devscripts
 
           pip install poetry
           poetry install
