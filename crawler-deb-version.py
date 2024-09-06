@@ -47,7 +47,7 @@ if not (api_key and email_from and email_to and email_subject) and not check_if_
     raise ValueError("Necessary environment variables are not set.")
 
 
-def send_result_notification(email_content, subject_prefix="CRAWLER"):
+def send_result_notification(email_content, subject_prefix="DEB-VERSION"):
     subject = f"[{subject_prefix}]{email_subject}"
 
     # Email payload
